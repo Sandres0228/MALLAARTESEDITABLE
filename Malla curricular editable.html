@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Malla curricular editable</title>
+<style>
+:root{--bg:#eceef0;--sf:#fff;--tx:#17191c;--mu:#62676d;--bd:#cfd3d8;--ac:#1d5fa8;--wn:#b4540a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171a;--sf:#202328;--tx:#eceef0;--mu:#9aa0a8;--bd:#383c43;--ac:#6fb0f2;--wn:#f0a85c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15171a;--sf:#202328;--tx:#eceef0;--mu:#9aa0a8;--bd:#383c43;--ac:#6fb0f2;--wn:#f0a85c;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 14px 4px}
+h1{font-size:18px;margin:0 0 2px;letter-spacing:-.01em}
+.sub{color:var(--mu);font-size:12px}
+button{font:inherit;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+.tb{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px}
+.tot{display:flex;flex-wrap:wrap;gap:4px 18px;padding:2px 14px 8px;font-size:13px}
+.tot b{font-size:16px}
+.lg{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.lg label{display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--bd);border-radius:999px;padding:3px 10px 3px 4px;font-size:12px}
+.lg input{width:22px;height:22px;border:0;padding:0;background:none;cursor:pointer}
+.board{display:flex;gap:8px;overflow-x:auto;padding:4px 14px 18px;align-items:flex-start}
+.col{flex:0 0 172px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:7px}
+.col.over{outline:2px solid var(--ac)}
+.ch{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;padding:0 2px 6px}
+.ch small{color:var(--mu);font-weight:400;font-size:12px;margin-left:4px}
+.ch button{padding:0 7px;font-size:15px}
+.cards{min-height:30px;display:flex;flex-direction:column;gap:5px}
+.card{position:relative;display:flex;gap:2px;border:1px solid rgba(0,0,0,.28);border-radius:7px;padding:6px 4px 6px 0;cursor:pointer;min-height:54px;user-select:none;-webkit-user-select:none}
+.card.dragging{opacity:.3}
+.ghost{position:fixed;z-index:50;pointer-events:none;opacity:.93;box-shadow:0 8px 22px rgba(0,0,0,.35);transform:rotate(2deg)}
+.grip{flex:0 0 24px;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:17px}
+.nm{font-weight:600;font-size:12.5px;padding-right:16px}
+.mt{font-size:11px;opacity:.78}
+.x{position:absolute;top:0;right:1px;border:0;background:none;color:inherit;opacity:.55;padding:0 6px;font-size:17px}
+.marker{height:4px;border-radius:2px;background:var(--ac);flex:0 0 4px}
+.add{width:100%;margin-top:6px;border-style:dashed;color:var(--mu)}
+.sum{margin-top:8px;border-top:1px solid var(--bd);padding-top:6px;font-size:12px}
+.sum.warn b{color:var(--wn)}
+.sb{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--bd);margin:5px 0}
+.chips{display:flex;flex-wrap:wrap;gap:2px 9px;color:var(--mu)}
+.chips i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px;border:1px solid rgba(0,0,0,.3)}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--sf);color:var(--tx);width:min(92vw,380px);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+label.f{display:block;font-size:12px;color:var(--mu);margin-top:9px}
+label.f input,label.f select,textarea{display:block;margin-top:3px}
+input[type=text],input[type=number],select,textarea{width:100%;font:inherit;color:var(--tx);padding:7px;border:1px solid var(--bd);border-radius:7px;background:var(--bg)}
+input[type=color]{height:34px;width:48px;padding:2px;border:1px solid var(--bd);border-radius:7px;background:var(--bg)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.acts{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+#ok{background:var(--ac);border-color:var(--ac);color:#fff}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+</style></head><body>
+<header><h1>Malla curricular de Artes Plásticas</h1>
+<div class="sub">Plan V13, febrero 2026. Arrastra desde ⠿ para mover; toca una caja para editarla. Máximo 7 por semestre.</div></header>
+<div class="tb"><button id="undo">Deshacer</button><button id="addsem">+ Semestre</button><button id="data">Copiar o pegar datos</button><button id="reset">Restablecer V13</button></div>
+<div class="tot" id="tot"></div><div class="lg" id="lg"></div>
+<div class="board" id="board"></div>
+
+<dialog id="ed"><b id="et"></b>
+<label class="f">Nombre<input type="text" id="en" placeholder="Nombre de la asignatura"></label>
+<div class="row"><label class="f">Créditos<input type="number" id="ec" min="0" max="12"></label><label class="f">HAP<input type="number" id="eh" min="0"></label><label class="f">HAI<input type="number" id="ei" min="0"></label></div>
+<label class="f">Tipo<select id="ety"></select></label>
+<div class="f">Color propio</div><div class="row" style="align-items:center;margin-top:3px"><input type="color" id="eco" style="flex:0 0 48px"><button id="ecr">Usar el color del tipo</button></div>
+<div class="acts"><button id="edel">Eliminar</button><button id="ecan">Cancelar</button><button id="ok">Guardar</button></div></dialog>
+
+<dialog id="dd"><b>Copiar o pegar datos</b>
+<p class="sub">Copia este texto para guardar tu malla. Para recuperar una, pégala aquí y pulsa Cargar.</p>
+<textarea id="dt" rows="8"></textarea>
+<div class="acts"><button id="dcp">Copiar</button><button id="dld">Cargar</button><button id="dcl">Cerrar</button></div></dialog>
+<div id="toast"></div>
+
+<script>
+const MAX=7,META=150,SEMMAX=18,KEY='malla-artes-v13';
+const T0=[['fund','Fundamentación','#9dc3e6',0],['inv','Investigación-creación','#a9d18e',0],['teo','Teorías e historias','#f4b183',0],['sem','Seminarios','#c9a7eb',0],['tg','Trabajo de grado','#2dd4a7',0],['opt','Optativa','#e3e2de',1],['lib','Libre elección','#fafaf8',1]].map(([id,n,c,f])=>({id,n,c,f}));
+const K={f:'fund',i:'inv',t:'teo',s:'sem',g:'tg',o:'opt',l:'lib'};
+const S0=[
+['f:Somática','f:Sensibilización espacial y objetual','f:Políticas del cuidado','f:Arte y contextos'],
+['f:Éticas de la representación','f:Aproximación a las visualidades','f:Discursos sobre el arte','f:Arte y conflicto'],
+['i:Taller de exploración','l:','t:Introducción a las teorías e historias del arte','o:','o:','l:'],
+['i:Taller de experimentación','l:','t:Teorías e historias del arte moderno','o:','o:','l:'],
+['i:Proyecto de investigación-creación I','i:Lab. de investigación artística','t:Teorías e historias del arte contemporáneo','o:','o:','l:'],
+['i:Proyecto de investigación-creación II','i:Lab. de investigación sobre las artes','t:Teorías e historias del arte latinoamericano y colombiano','o:','o:','s:Problemas contemporáneos de las artes I'],
+['i:Proyecto de investigación-creación III','i:Lab. de investigación transdisciplinar','t:Lab. de teorías e historias del arte','o:','o:','s:Problemas contemporáneos de las artes II'],
+['g:Proyecto de trabajo de grado','l:','l:','l:','l:'],
+['g:Trabajo de grado','l:','l:','l:','l:']];
+let uid=0;const nid=()=>'k'+Date.now().toString(36)+(uid++);
+const mk=(n,t,cr=3)=>({id:nid(),n,t,cr,hap:cr,hai:cr*2});
+const seed=()=>({types:T0.map(t=>({...t})),cols:S0.map(c=>c.map(s=>{const t=K[s[0]];return mk(s.slice(2)||(t==='opt'?'Optativa':'Libre elección'),t,t==='tg'?6:3)}))});
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&Array.isArray(o.cols)&&Array.isArray(o.types))return o}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load()||seed();const hist=[];
+const snap=()=>{hist.push(JSON.stringify(S));if(hist.length>50)hist.shift()};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const typ=id=>S.types.find(t=>t.id===id)||S.types[0];
+const rom=n=>{let s='';for(const[v,l]of[[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){s+=l;n-=v}return s||'0'};
+const fg=c=>{const h=c.replace('#','');const[r,g,b]=[0,2,4].map(i=>parseInt(h.substr(i,2),16));return(r*299+g*587+b*114)/1000>140?'#1a1a1a':'#fff'};
+const pc=(a,b)=>b?Math.round(a/b*100)+' %':'0 %';
+function sum(cs){const o={cr:0,hap:0,hai:0,fx:0,by:{}};for(const c of cs){o.cr+=c.cr;o.hap+=c.hap;o.hai+=c.hai;o.by[c.t]=(o.by[c.t]||0)+c.cr;if(typ(c.t).f)o.fx+=c.cr}return o}
+function find(id){for(let i=0;i<S.cols.length;i++){const j=S.cols[i].findIndex(c=>c.id===id);if(j>=0)return[i,j]}return null}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600)}
+const card=c=>{const t=typ(c.t),bg=c.col||t.c;return `<div class="card" data-id="${c.id}" style="background:${bg};color:${fg(bg)}"><span class="grip" title="Arrastrar">⠿</span><div><div class="nm">${esc(c.n)}</div><div class="mt">${c.cr} créditos</div><div class="mt">${esc(t.n)}</div></div><button class="x" title="Eliminar">×</button></div>`};
+function render(){
+ const a=sum(S.cols.flat()),ob=a.cr-a.fx;
+ $('#tot').innerHTML=`<span><b>${a.cr}</b> de ${META} créditos${a.cr!==META?` <span style="color:var(--wn)">(${a.cr>META?'+':''}${a.cr-META})</span>`:''}</span><span>Obligatorios <b>${ob}</b> (${pc(ob,a.cr)})</span><span>Flexibles <b>${a.fx}</b> (${pc(a.fx,a.cr)})</span><span>HAP ${a.hap}, HAI ${a.hai}</span>`;
+ $('#lg').innerHTML=S.types.map(t=>`<label title="Cambiar color del tipo"><input type="color" value="${t.c}" data-t="${t.id}">${esc(t.n)} <b>${a.by[t.id]||0}</b></label>`).join('');
+ $('#board').innerHTML=S.cols.map((cs,i)=>{const o=sum(cs);return `<div class="col" data-i="${i}"><div class="ch"><span>${rom(i+1)}<small>${cs.length} de ${MAX}</small></span>${cs.length?'':'<button class="dc" title="Quitar semestre vacío">×</button>'}</div><div class="cards">${cs.map(card).join('')}</div><button class="add"${cs.length>=MAX?' disabled':''}>+ Agregar</button><div class="sum${o.cr>SEMMAX?' warn':''}"><b>${o.cr} créditos</b> <small>HAP ${o.hap}, HAI ${o.hai}</small><div class="sb">${S.types.map(t=>o.by[t.id]?`<span style="flex:${o.by[t.id]};background:${t.c}"></span>`:'').join('')}</div><div class="chips">${S.types.filter(t=>o.by[t.id]).map(t=>`<span><i style="background:${t.c}"></i>${o.by[t.id]}</span>`).join('')}</div><div class="chips">Obligatorios ${o.cr-o.fx}, flexibles ${o.fx}</div></div></div>`}).join('');
+ save();
+}
+$('#board').addEventListener('click',e=>{
+ const col=e.target.closest('.col');if(!col)return;const i=+col.dataset.i;
+ if(e.target.closest('.dc')){snap();S.cols.splice(i,1);render();return}
+ if(e.target.closest('.add')){edit(null,i);return}
+ const cd=e.target.closest('.card');if(!cd||e.target.closest('.grip'))return;
+ if(e.target.closest('.x')){snap();const[a,b]=find(cd.dataset.id);S.cols[a].splice(b,1);render();toast('Asignatura eliminada. Puedes deshacer.');return}
+ edit(cd.dataset.id)});
+$('#lg').addEventListener('change',e=>{const id=e.target.dataset.t;if(!id)return;snap();typ(id).c=e.target.value;render()});
+
+/* Arrastrar y soltar */
+let D=null;
+$('#board').addEventListener('pointerdown',e=>{
+ const g=e.target.closest('.grip');if(!g||e.button>0)return;e.preventDefault();
+ const el=g.closest('.card'),r=el.getBoundingClientRect(),gh=el.cloneNode(true);
+ gh.classList.add('ghost');gh.style.cssText+=`;width:${r.width}px;left:${r.left}px;top:${r.top}px`;
+ document.body.appendChild(gh);el.classList.add('dragging');
+ D={id:el.dataset.id,gh,dx:e.clientX-r.left,dy:e.clientY-r.top,col:null,idx:0};
+ addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)});
+function mv(e){
+ D.gh.style.left=e.clientX-D.dx+'px';D.gh.style.top=e.clientY-D.dy+'px';
+ const b=$('#board'),br=b.getBoundingClientRect();
+ if(e.clientX<br.left+40)b.scrollLeft-=14;else if(e.clientX>br.right-40)b.scrollLeft+=14;
+ document.querySelectorAll('.marker').forEach(m=>m.remove());
+ document.querySelectorAll('.col.over').forEach(c=>c.classList.remove('over'));
+ const col=document.elementFromPoint(e.clientX,e.clientY)?.closest('.col');
+ D.col=col?+col.dataset.i:null;if(!col)return;
+ col.classList.add('over');
+ const cs=[...col.querySelectorAll('.card:not(.dragging)')];
+ let k=cs.findIndex(c=>{const r=c.getBoundingClientRect();return e.clientY<r.top+r.height/2});
+ if(k<0)k=cs.length;D.idx=k;
+ const m=document.createElement('div');m.className='marker';col.querySelector('.cards').insertBefore(m,cs[k]||null);
+}
+function up(){
+ removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+ const d=D;D=null;d.gh.remove();
+ if(d.col!==null){const[a,b]=find(d.id);
+  if(a!==d.col&&S.cols[d.col].length>=MAX){toast('Máximo '+MAX+' asignaturas por semestre');render();return}
+  snap();const[c]=S.cols[a].splice(b,1);S.cols[d.col].splice(d.idx,0,c)}
+ render()}
+
+/* Editor de asignatura */
+let ET=null,own=false;
+function edit(id,ci){
+ let c;if(id){const[a,b]=find(id);c=S.cols[a][b];ET={id}}else{c={n:'',t:'lib',cr:3,hap:3,hai:6};ET={ci}}
+ $('#et').textContent=id?'Editar asignatura':'Nueva asignatura, semestre '+rom(ci+1);
+ $('#en').value=c.n;$('#ec').value=c.cr;$('#eh').value=c.hap;$('#ei').value=c.hai;
+ $('#ety').innerHTML=S.types.map(t=>`<option value="${t.id}"${t.id===c.t?' selected':''}>${esc(t.n)}</option>`).join('');
+ own=!!c.col;$('#eco').value=c.col||typ(c.t).c;
+ $('#edel').style.display=id?'':'none';$('#ed').showModal();
+}
+$('#ec').oninput=()=>{const v=+$('#ec').value||0;$('#eh').value=v;$('#ei').value=v*2};
+$('#ety').onchange=()=>{if(!own)$('#eco').value=typ($('#ety').value).c};
+$('#eco').oninput=()=>{own=true};
+$('#ecr').onclick=()=>{own=false;$('#eco').value=typ($('#ety').value).c};
+$('#ecan').onclick=()=>$('#ed').close();
+$('#edel').onclick=()=>{snap();const[a,b]=find(ET.id);S.cols[a].splice(b,1);$('#ed').close();render()};
+$('#ok').onclick=()=>{
+ const t=$('#ety').value,o={n:$('#en').value.trim()||typ(t).n,t,cr:+$('#ec').value||0,hap:+$('#eh').value||0,hai:+$('#ei').value||0,col:own?$('#eco').value:undefined};
+ snap();
+ if(ET.id){const[a,b]=find(ET.id);Object.assign(S.cols[a][b],o)}else S.cols[ET.ci].push({id:nid(),...o});
+ $('#ed').close();render()};
+
+/* Barra de herramientas */
+$('#undo').onclick=()=>{const s=hist.pop();if(!s)return toast('No hay nada que deshacer');S=JSON.parse(s);render()};
+$('#addsem').onclick=()=>{snap();S.cols.push([]);render();$('#board').scrollLeft=1e5};
+$('#reset').onclick=()=>{snap();S=seed();render();toast('Malla V13 restablecida. Puedes deshacer.')};
+$('#data').onclick=()=>{$('#dt').value=JSON.stringify(S);$('#dd').showModal()};
+$('#dcl').onclick=()=>$('#dd').close();
+$('#dcp').onclick=()=>{const t=$('#dt');t.select();try{document.execCommand('copy');navigator.clipboard&&navigator.clipboard.writeText(t.value).catch(()=>{});toast('Copiado')}catch(e){toast('Selecciona el texto y cópialo')}};
+$('#dld').onclick=()=>{try{const o=JSON.parse($('#dt').value);if(!Array.isArray(o.cols)||!Array.isArray(o.types))throw 0;snap();S=o;render();$('#dd').close();toast('Malla cargada')}catch(e){toast('El texto no es una malla válida')}};
+render();
+</script></body></html>
